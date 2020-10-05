@@ -11,8 +11,8 @@ import numpy as np
 # -- load keras models
 print("Loading Keras: steering model")
 model = load_model('saved_model_custom_12.h5')
-# print("Loading Keras: speed model")
-# model2 = load_model('saved_model_road_1.h5')
+print("Loading Keras: speed model")
+model2 = load_model('saved_model_road_1.h5')
 # -------
 
 # -- read video file
@@ -27,6 +27,10 @@ key_handler = key.KeyStateHandler()
 angles_lst = []
 color = (0, 200, 0)
 lines_angle = [0,0,0]
+road_prediction = []
+
+road_value = 3
+road_value_prev = 3
 # --------------------
 
 while(True):
@@ -40,20 +44,24 @@ while(True):
         color = (0, 0, 200)
     if key_pressed == ord('s'):
         color = (200, 200, 200)
-    print(color)
+    # print(color)
     # ------------------
 
     # -- prepare frame image for keras
     im = Image.fromarray(frame)
     im = im.crop((0, 300, 1640, 1032))
     im = im.resize((66, 200), Image.ANTIALIAS)
+    img_pred_speed = image_keras_preprocessing.img_to_array(im)
+    img_pred_speed = np.expand_dims(img_pred_speed, axis=0)
     draw = ImageDraw(im)
     draw.rectangle((0, 185, 66, 200), fill=color)
     # im.save("steering_frames/" + str(time()) + ".png")
-    img_pred = im
-    img_pred = image_keras_preprocessing.img_to_array(img_pred)
+    img_pred = image_keras_preprocessing.img_to_array(im)
     img_pred = np.expand_dims(img_pred, axis=0)
     # ----------------------
+
+
+
 
     # -- process frame with keras - steernig
     rslt = model.predict(img_pred)
@@ -83,16 +91,43 @@ while(True):
         xt = a * x * x
         x12 = 1640 - xt - x * 0.9
         x22 = 0 - xt + x * 0.9
-        cv2.line(frame, (int(x11), y + 752), (int(x12), y + 20 + 752), (80, 80, 200), 15)
-        cv2.line(frame, (int(x21), y + 752), (int(x22), y + 20 + 752), (80, 80, 200), 15)
-
-
+        cv2.line(frame, (int(x11), y + 752), (int(x12), y + 20 + 752), (200, 80, 80), 15)
+        cv2.line(frame, (int(x21), y + 752), (int(x22), y + 20 + 752), (200, 80, 80), 15)
     # ------------------------
 
-    # -- process frame with Keras - speed
-    # rslt2 = model2.predict(img_pred / 255)
 
+
+
+
+    # -- process frame with Keras - speed
+    rslt2 = model2.predict(img_pred_speed / 255)
+    print("rslt2")
+    print(rslt2)
+    road_prediction.append(rslt2[0].argmax())
+    if len(road_prediction) > 20:
+        road_prediction.pop(0)
+    # print(road_prediction)
+    rv = max(set(road_prediction), key=road_prediction.count)
+    if rv != road_value_prev:
+        road_value_prev = road_value
+    road_value = rv
+    if road_value == 3:
+        sign_prediction = []
+
+    # print('Road:' + str(road_value))
+    speeds = [0.2, 0.4, 0.6, 0.8]
+    gl_speed = 0
+    for idx in range(4):
+        gl_speed += rslt2[0][idx] * speeds[idx]
+    print(gl_speed)
+    cv2.putText(frame, 'Speed: {} km/h '.format(round((gl_speed * 10),2)), (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.5,
+                (100, 100, 255), 4)
     # --------------------------------
+
+
+
+
+
 
     # -- show frame
     frame = cv2.resize(frame, (800, 600))
