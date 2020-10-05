@@ -31,14 +31,16 @@ lines_angle = [0,0,0]
 
 while(True):
     # -- read direction key
-    if key_handler[key.W]:
+    key_pressed = cv2.waitKey(3)
+    if key_pressed == ord('w'):
         color = (0, 200, 0)
-    if key_handler[key.A]:
+    if key_pressed == ord('a'):
         color = (200, 0, 0)
-    if key_handler[key.D]:
+    if key_pressed == ord('d'):
         color = (0, 0, 200)
-    if key_handler[key.S]:
+    if key_pressed == ord('s'):
         color = (200, 200, 200)
+    print(color)
     # ------------------
 
     # -- prepare frame image for keras
