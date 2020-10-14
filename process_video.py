@@ -11,7 +11,7 @@ import tensorflow as tf
 
 # -- load keras models
 print("Loading Keras: steering model")
-model = load_model('saved_model_custom_12.h5')
+model = load_model('steering__6.h5')
 print("Loading Keras: speed model")
 model2 = load_model('road_1.h5')
 # -------
@@ -40,7 +40,7 @@ input_std = 127.5
 
 
 # -- read video file
-cap = cv2.VideoCapture("picam2020_10_5_16_28_30.h264")
+cap = cv2.VideoCapture("Video1.avi")
 ret, frame = cap.read()
 # frame dimesions: 1232 x 1640
 # ---------------
@@ -63,7 +63,7 @@ sign_prediction = []
 # --------------------
 
 # <
-step = 2300
+step = 5300
 # >
 
 while(True):
@@ -90,8 +90,8 @@ while(True):
     #ims.save("steering_frames/" + str(time()) + ".png")
 
     im = Image.fromarray(frame)
-    im = im.crop((0, 300, 1640, 1032))
-    im = im.resize((66, 200), Image.ANTIALIAS)
+    im = im.crop((0, 554, 1640, 1032))
+    im = im.resize((110, 140), Image.ANTIALIAS)
     draw = ImageDraw(im)
     draw.rectangle((0, 185, 66, 200), fill=color)
     # im.save("steering_frames/" + str(time()) + ".png")
@@ -110,7 +110,7 @@ while(True):
     rslt = model.predict(img_pred)
     predicted_angles = [-0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3, -0.3, -0.2, -0.1,
                         0.0, 0.1, 0.2, 0.3, -0.3, -0.2, -0.1, 0.0, 0.1, 0.2, 0.3, -0.3, -0.2, -0.1, 0.0, 0.1, 0.2,
-                        0.3, 0.3, -0.3, 0, -0.3, 0.3]
+                        0.3]
     angle_float = 0
     # print(rslt[0])
     for idx in range(28):
@@ -169,7 +169,9 @@ while(True):
     #print(gl_speed)
     cv2.putText(frame, 'Speed: {} km/h '.format(round((gl_speed * 10),2)), (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.5,
                 (100, 100, 255), 4)
-    cv2.putText(frame, 'Status: {}'.format(status), (50, 150), cv2.FONT_HERSHEY_SIMPLEX, 1.5,
+    cv2.putText(frame, 'Status: {}'.format(status), (50, 200), cv2.FONT_HERSHEY_SIMPLEX, 1.5,
+                (100, 100, 255), 4)
+    cv2.putText(frame, 'Angle: {}'.format(round(-final_angle*3, 3)), (50, 150), cv2.FONT_HERSHEY_SIMPLEX, 1.5,
                 (100, 100, 255), 4)
     # --------------------------------
 
